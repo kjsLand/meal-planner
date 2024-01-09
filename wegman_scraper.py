@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import undetected_chromedriver as uc
 from selenium.webdriver.chrome.service import Service as ChromeService
@@ -8,7 +9,7 @@ from wegmans_enums import Paths
 from selenium.webdriver.common.action_chains import ActionChains 
 from selenium.common.exceptions import NoSuchElementException
 
-DELAY = 13
+DELAY = 10
 DB = "wegmans_products"
 
 def setup() -> uc.Chrome:
@@ -51,7 +52,7 @@ def get_XHR(driver:uc.Chrome, department:str):
 def load_full_page(driver:uc.Chrome):
     for i in range(1, 5):
         driver.execute_script(f"window.scrollTo(0,document.body.scrollHeight/5*{i})")
-        time.sleep(5)
+        time.sleep(DELAY)
 
 def grab_all_products():
     driver = setup()
@@ -62,18 +63,21 @@ def grab_all_products():
     time.sleep(DELAY)
     dep_length = len(driver.find_elements(By.XPATH, Paths.department.value))
     print(dep_length)
-    for i in range(5, dep_length):
+    for i in range(41, dep_length):
         # Gets departments again because of stale reference error
         all_deps = driver.find_elements(By.XPATH, Paths.department.value)
         dep_name = all_deps[i].text
         all_deps[i].click()
         time.sleep(DELAY)
+        # prods = 0
 
         next_color = "rgba(206, 63, 36, 1)"
         while next_color == "rgba(206, 63, 36, 1)": # red (not last page)
             load_full_page(driver)
             products = driver.find_elements(By.XPATH, Paths.product.value)
             print(len(products))
+            # prods += len(products)
+            # if prods >= 540:
             for item in products:
                 driver.get_log("performance") # clears log
                 driver.execute_script("arguments[0].scrollIntoView();", item)
@@ -100,7 +104,12 @@ def grab_all_products():
         time.sleep(DELAY)
 
 def main(): 
-    grab_all_products()
+    # Redo yogurt (30)
+    # Redo Frozen Pizza (37)
+    # Ice Cream (Has repeat values - Check if all are there)
+    # grab_all_products()
+
+    print(len(os.listdir("wegmans_products")))
 
 if __name__ == "__main__":
     main()
